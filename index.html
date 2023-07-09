@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Ajax Tabel Dynamic</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <h1>PHP Ajax Tabel Dynamic</h1>
+                <button type="button" class="btn btn-primary" id="show_tabel">Show Input Tabel</button>
+                <button type="button" class="btn btn-success" id="save_tabel">Save Tabel</button>
+            </div>
+            <div class="col-md-12 mt-3">
+                <form action="#" id="form_input">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                          <thead>
+                            <tr>
+                              <th class="text-center">Item</th>
+                              <th class="text-center">qty</th>
+                              <th class="text-center">Warehouse</th>
+                              <th class="text-center">Remove Row</th>
+                            </tr>
+                          </thead>
+                          <tbody id="tbody">
+                    
+                          </tbody>
+                        </table>
+                      </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        var rowIdx = 0;
+        $("#show_tabel").click(function (e) { 
+            e.preventDefault();
+            $.ajax({
+                type: "get",
+                url: "ajax_show_tabel.php",
+                dataType: "json",
+                success: function (response) {
+                    console.log(response)
+                    var data_response = response.data
+                    $.each(data_response, function (index, val) { 
+                         $("#tbody").append(`<tr id="R${++rowIdx}">
+                            <td class="item_id"><input name="item_id[]" readonly value="${val.item_id}"></td>
+                            <td><input name="qty[]" value="${val.qty}"></td>
+                            <td><input name="warehouse[]" readonly value="${val.warehouse}"></td>
+                            <td><button class="btn btn-danger remove" 
+                type="button">Remove</button></td>
+                            </tr>`)
+                    });
+                }
+            });
+        });
+
+        $("#save_tabel").click(function (e) { 
+            e.preventDefault();
+            var item_id = $('input[name="item_id[]"]').map(function(){return $(this).val();}).get();
+            var qty = $('input[name="qty[]"]').map(function(){return $(this).val();}).get();
+            console.log(item_id);
+            $.ajax({
+                type: "post",
+                url: "ajax_save.php",
+                data: {
+                    "item_id" : item_id,
+                    "qty" : qty
+                },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response)
+                    alert(response)
+                }
+            });
+        });
+
+        $('#tbody').on('click', '.remove', function () {
+  
+  // Getting all the rows next to the 
+  // row containing the clicked button
+  var child = $(this).closest('tr').nextAll();
+
+  // Iterating across all the rows 
+  // obtained to change the index
+  child.each(function () {
+        
+      // Getting <tr> id.
+      var id = $(this).attr('id');
+
+      // Getting the <p> inside the .row-index class.
+      var idx = $(this).children('.row-index').children('p');
+
+      // Gets the row number from <tr> id.
+      var dig = parseInt(id.substring(1));
+
+      // Modifying row index.
+      idx.html(`Row ${dig - 1}`);
+
+      // Modifying row id.
+      $(this).attr('id', `R${dig - 1}`);
+  });
+
+  // Removing the current row.
+  $(this).closest('tr').remove();
+
+  // Decreasing the total number of rows by 1.
+  rowIdx--;
+});
+    </script>
+</body>
+</html>
